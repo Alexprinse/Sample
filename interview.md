@@ -13,7 +13,7 @@ Below is a complete, working solution that simulates raindrops on an N×N grid a
 ⸻
 
 ✅ Python Solution (Union by Size)
-
+```python
 class DSU:
     def __init__(self, n):
         self.parent = list(range(n))
@@ -35,12 +35,12 @@ class DSU:
 
         self.parent[ry] = rx
         self.size[rx] += self.size[ry]
-
+```
 
 ⸻
 
 ✅ Rainfall Simulation Using DSU
-
+```python
 class RainWorld:
     def __init__(self, N):
         self.N = N
@@ -74,12 +74,12 @@ class RainWorld:
             return 0
         root = self.dsu.find(self.cell_id(r, c))
         return self.dsu.size[root]
-
+```
 
 ⸻
 
 ✅ Example Run
-
+```python
 rw = RainWorld(3)
 
 rw.drop(1,1)
@@ -87,11 +87,11 @@ rw.drop(1,2)
 rw.drop(2,2)
 
 print(rw.puddle_size(1,2))
-
+```
 ✅ Output:
-
+```
 3
-
+```
 Meaning: one puddle with 3 units of water.
 
 ⸻
