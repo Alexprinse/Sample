@@ -143,7 +143,111 @@ If you want, I can also:
 ```
 Just ask 👍
 
+Short answer:
+No, the code as written only gives you the size of the puddle containing one cell. It does not directly return all coordinates of every puddle.
+# ALL PuDDLES
+But we can very easily extend it to do that. Let me explain.
 
+⸻
+
+What the current code can do
+
+With this function:
+```python
+def puddle_size(self, r, c):
+    if self.grid[r][c] == 0:
+        return 0
+    root = self.dsu.find(self.cell_id(r, c))
+    return self.dsu.size[root]
+```
+You can ask:
+	•	“What is the size of the puddle that includes (r, c)?”
+
+But it does not:
+	•	List all (row, col) cells in that puddle
+	•	Or list all puddles on the grid
+
+⸻
+
+How to get all puddles with their coordinates
+
+We can add a method that:
+	1.	Walks over all cells in the grid.
+	2.	For each water cell, finds its DSU root.
+	3.	Groups cells by root in a dictionary.
+
+Here’s a method you can add inside RainWorld:
+```python
+from collections import defaultdict
+
+class RainWorld:
+    # ... (existing methods)
+
+    def get_all_puddles(self):
+        """
+        Returns:
+            List of puddles, where each puddle is a list of (r, c) coordinates.
+        """
+        root_to_cells = defaultdict(list)
+
+        for r in range(self.N):
+            for c in range(self.N):
+                if self.grid[r][c] == 1:         # only water cells
+                    cid = self.cell_id(r, c)
+                    root = self.dsu.find(cid)    # DSU leader of this puddle
+                    root_to_cells[root].append((r, c))
+
+        # Each value in the dict is one puddle (list of coordinates)
+        return list(root_to_cells.values())
+```
+Example usage
+```python
+rw = RainWorld(3)
+rw.drop(1,1)
+rw.drop(1,2)
+rw.drop(2,2)
+rw.drop(0,0)
+
+puddles = rw.get_all_puddles()
+print(puddles)
+```
+Possible output (order may vary):
+```python
+[[(1, 1), (1, 2), (2, 2)],  # one puddle
+ [(0, 0)]]                  # another puddle
+```
+So now you do get all puddles, with all their coordinates.
+
+⸻
+
+How to get coordinates of puddle containing (r, c) only
+
+If you want only the coordinates of the puddle that (r,c) belongs to:
+```python
+def get_puddle_cells(self, r, c):
+    if self.grid[r][c] == 0:
+        return []  # no water here
+
+    target_root = self.dsu.find(self.cell_id(r, c))
+    cells = []
+
+    for i in range(self.N):
+        for j in range(self.N):
+            if self.grid[i][j] == 1:
+                if self.dsu.find(self.cell_id(i, j)) == target_root:
+                    cells.append((i, j))
+
+    return cells
+```
+
+⸻
+
+So:
+	•	Current code → gives puddle size at one coordinate.
+	•	With get_all_puddles → you get all puddles + all coordinates.
+	•	With get_puddle_cells → you get just the coordinates for the puddle of a specific cell.
+
+If you tell me your exact output format (like list of lists, or printing nicely), I can shape the functions exactly how you want.
 
 
 # Explanation
