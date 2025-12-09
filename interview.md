@@ -97,18 +97,18 @@ Meaning: one puddle with 3 units of water.
 ⸻
 
 ✅ Logic Explanation (Interview Friendly)
-
+```
 When a drop falls:
 	1.	Mark cell = water
 	2.	Check 4 neighbors
 	3.	If neighbor is water → union() them
 	4.	Union always attaches smaller puddle to larger puddle (union by size)
 	5.	Size array keeps track of puddle size
-
+```
 ⸻
 
 ✅ Time Complexity
-
+```
 Operation	Complexity
 find	O(α(N))
 union	O(α(N))
@@ -116,29 +116,29 @@ Each drop	O(1) (amortized)
 Grid size	O(N²)
 
 (α(N) is inverse Ackermann — practically constant)
-
+```
 ⸻
 
 ✅ Space Complexity
-
+```
 Structure	Cost
 Grid	O(N²)
 DSU arrays	O(N²)
-
+```
 
 ⸻
 
 ✅ Interview Summary Line
-
+```
 I used Union-Find with union by size to store connected water regions. Each raindrop unions with adjacent wet cells, forming puddles efficiently with near-constant time operations.
-
+```
 ⸻
-
+```
 If you want, I can also:
 ✅ Add puddle numbering
 ✅ Count total puddles
 ✅ Show BFS version
 ✅ Handle evaporation/drainage
 ✅ Animate simulation
-
+```
 Just ask 👍
