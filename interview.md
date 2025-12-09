@@ -3,13 +3,13 @@ I’ll solve the rain–puddle problem using Union-Find with UNION BY SIZE (as y
 Below is a complete, working solution that simulates raindrops on an N×N grid and merges adjacent water into puddles using Disjoint Sets with Union by Size + Path Compression.
 
 ⸻
-
+```
 ✅ Problem Recap
 	•	Grid of size N × N
 	•	A drop falls at a cell
 	•	If neighbors (up/down/left/right) already have water → merge into puddle
 	•	Use Union-Find with union by size to manage puddles
-
+```
 ⸻
 
 ✅ Python Solution (Union by Size)
