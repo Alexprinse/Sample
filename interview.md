@@ -1,163 +1,121 @@
-This problem is essentially asking you to design a model / data structure for a rain–water simulation on a grid and explain how you would manage droplets and puddles when water falls and merges with neighbors.
+I’ll solve the rain–puddle problem using Union-Find with UNION BY SIZE (as you requested).
 
-Let’s break it down and give you a clear conceptual + technical solution.
-
-⸻
-
-✅ Problem Understanding
-
-You are given:
-	•	A finite N × N grid (matrix of tiles).
-	•	Each tile can hold one drop of water at a time.
-	•	A rain drop falls on a tile.
-	•	If its adjacent neighbors (up, down, left, right) already contain water → they merge into a puddle.
-	•	You are given falling instructions of rain (coordinates).
-	•	Your task: design how you would track and manage this world.
+Below is a complete, working solution that simulates raindrops on an N×N grid and merges adjacent water into puddles using Disjoint Sets with Union by Size + Path Compression.
 
 ⸻
 
-✅ World Representation (Data Structures)
-
-1. Land Representation
-
-Use a 2D Matrix:
-
-grid[N][N] = 0 initially
-
-Each cell can represent:
-	•	0 → dry
-	•	1 → single water drop
-	•	>1 → puddle size (merged water count)
+✅ Problem Recap
+	•	Grid of size N × N
+	•	A drop falls at a cell
+	•	If neighbors (up/down/left/right) already have water → merge into puddle
+	•	Use Union-Find with union by size to manage puddles
 
 ⸻
 
-2. Neighbour Directions
+✅ Python Solution (Union by Size)
 
-Water merges only from edges, not diagonals:
+class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.size = [1] * n   # size of each component
 
-directions = [(-1,0),(1,0),(0,-1),(0,1)]
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])   # path compression
+        return self.parent[x]
+
+    def union(self, x, y):
+        rx, ry = self.find(x), self.find(y)
+        if rx == ry:
+            return
+
+        # UNION BY SIZE
+        if self.size[rx] < self.size[ry]:
+            rx, ry = ry, rx
+
+        self.parent[ry] = rx
+        self.size[rx] += self.size[ry]
+
+
+⸻
+
+✅ Rainfall Simulation Using DSU
+
+class RainWorld:
+    def __init__(self, N):
+        self.N = N
+        self.grid = [[0]*N for _ in range(N)]   # 0 = dry, 1 = water
+        self.dsu = DSU(N*N)
+
+    def cell_id(self, r, c):
+        return r * self.N + c
+
+    def in_bounds(self, r, c):
+        return 0 <= r < self.N and 0 <= c < self.N
+
+    def drop(self, r, c):
+        if self.grid[r][c] == 1:
+            return  # Already water
+
+        self.grid[r][c] = 1
+        curr = self.cell_id(r, c)
+
+        # Directions: up, down, left, right
+        directions = [(-1,0),(1,0),(0,-1),(0,1)]
+
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if self.in_bounds(nr, nc) and self.grid[nr][nc] == 1:
+                neighbour = self.cell_id(nr, nc)
+                self.dsu.union(curr, neighbour)
+
+    def puddle_size(self, r, c):
+        if self.grid[r][c] == 0:
+            return 0
+        root = self.dsu.find(self.cell_id(r, c))
+        return self.dsu.size[root]
 
 
 ⸻
 
-✅ Core Idea: Use Graph + DFS / BFS / Union-Find
+✅ Example Run
 
-To track puddles efficiently, you use one of these approaches:
+rw = RainWorld(3)
 
-⸻
+rw.drop(1,1)
+rw.drop(1,2)
+rw.drop(2,2)
 
-OPTION 1: DFS / BFS per drop (easy, intuitive)
+print(rw.puddle_size(1,2))
 
-When a drop falls at (i, j):
+✅ Output:
 
-Step 1: Place drop
+3
 
-grid[i][j] = 1
-
-Step 2: Check neighbors
-
-For each neighbor:
-	•	If neighbor has water → merge puddles
-
-Step 3: Merge using DFS/BFS
-
-If merging begins:
-	•	Traverse connected neighbors
-	•	Count total water units
-	•	Set all visited cells as part of one puddle
+Meaning: one puddle with 3 units of water.
 
 ⸻
 
-OPTION 2 (Better): Union-Find (Disjoint Set Union)
-
-Why Union-Find?
-
-Because:
-	•	You need to merge tiles efficiently.
-	•	You need to quickly know:
-“Which puddle does this tile belong to?”
-
-Data Structures:
-
-parent[] → Group leader for each tile
-size[]   → Size of puddle group
-
-Mapping:
-
-id = row * N + col
-
-
-⸻
+✅ Logic Explanation (Interview Friendly)
 
 When a drop falls:
-	1.	Mark tile active.
-	2.	Check four neighbors.
-	3.	If neighbor has water:
-
-union(current_tile, neighbor)
-
-
-	4.	Update puddle size.
-
-This gives:
-	•	O(α(N)) time per union (almost O(1))
-	•	Extremely efficient for large grids.
-
-⸻
-
-✅ Example Flow
-
-Falling instructions:
-
-drop at (1,1)
-drop at (1,2)
-drop at (2,2)
-
-Grid after first:
-
-. . .
-. W .
-. . .
-
-After second:
-
-. . .
-. P P
-. . .
-
-(merged into puddle of size 2)
-
-After third:
-
-. . .
-. P P
-. . P
-
-Now one puddle of size 3
-
-⸻
-
-✅ In Interview / Exam: What You Should Say
-
-“I would model the land as an N×N grid.
-
-Each tile stores water presence.
-When a new drop falls, I check its four neighbors.
-If neighbors contain water, I merge them.”
-
-For implementation:
-
-✅ Small grid → DFS/BFS
-✅ Large grid → Union-Find (best)
+	1.	Mark cell = water
+	2.	Check 4 neighbors
+	3.	If neighbor is water → union() them
+	4.	Union always attaches smaller puddle to larger puddle (union by size)
+	5.	Size array keeps track of puddle size
 
 ⸻
 
 ✅ Time Complexity
 
-Approach	Per Drop
-DFS/BFS	O(N²) worst
-Union-Find	O(α(N)) ~ O(1)
+Operation	Complexity
+find	O(α(N))
+union	O(α(N))
+Each drop	O(1) (amortized)
+Grid size	O(N²)
 
+(α(N) is inverse Ackermann — practically constant)
 
 ⸻
 
@@ -165,33 +123,22 @@ Union-Find	O(α(N)) ~ O(1)
 
 Structure	Cost
 Grid	O(N²)
-Parent, Size	O(N²)
+DSU arrays	O(N²)
 
 
 ⸻
 
-✅ Bonus (If they ask more)
+✅ Interview Summary Line
 
-You can extend this model:
-	•	Evaporation
-	•	Drainage
-	•	Water flow
-	•	Pond thresholds
-	•	Rain intensity
-	•	Flood alerts
+I used Union-Find with union by size to store connected water regions. Each raindrop unions with adjacent wet cells, forming puddles efficiently with near-constant time operations.
 
 ⸻
 
-✅ One-Line Answer Template
+If you want, I can also:
+✅ Add puddle numbering
+✅ Count total puddles
+✅ Show BFS version
+✅ Handle evaporation/drainage
+✅ Animate simulation
 
-“I model the land using a 2D grid. Each rain drop is placed in a tile. When neighboring tiles contain water, I merge them using BFS or an optimized union-find structure to maintain puddles efficiently.”
-
-⸻
-
-If you want, I can give you:
-
-✅ DFS version code
-✅ Union-Find efficient code
-✅ Interview-ready scripted answer
-
-Just tell me 👍
+Just ask 👍
